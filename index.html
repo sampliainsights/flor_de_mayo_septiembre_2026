@@ -746,6 +746,8 @@
       padding: 24px 16px 22px 0;
       border-right: 1px solid var(--line);
       min-width: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     .kpi:last-child {
@@ -846,6 +848,10 @@
     section {
       padding-top: clamp(50px, 6vw, 84px);
       scroll-margin-top: 24px;
+    }
+
+    #caps {
+      margin-top: clamp(0px, 1vw, 12px);
     }
 
     .section-pair {
@@ -1266,6 +1272,17 @@
       display: none;
     }
 
+    .vis-legend {
+      margin-top: 14px;
+      font-size: 11px;
+      line-height: 1.5;
+      opacity: .75;
+    }
+
+    .vis-legend p {
+      margin: 0 0 4px;
+    }
+
     /* ═══ ALTURAS DE LIENZO ════════════════════════════════════════════ */
     .cv {
       position: relative;
@@ -1394,6 +1411,15 @@
 
     .kpi .minipill b {
       font-size: 10.5px;
+    }
+
+    .kpi-bm {
+      margin-top: auto;
+      padding-top: 9px;
+    }
+
+    .kpi-bm .minipill {
+      margin-left: 0;
     }
 
     .minipill.up {
@@ -2870,7 +2896,7 @@
           </div>
         </div>
         <div class="cta-close-content">
-          <h2 class="cta-close-h"><span class="cta-close-lead">¿Seguimos en contacto con</span> <span class="key">tus compradores potenciales?</span></h2>
+          <h2 class="cta-close-h"><span class="cta-close-lead">¿Reimpactamos a los</span> <span class="key"><span id="cta-n">—</span> compradores potenciales?</span></h2>
           <a class="cta-close-btn" href="https://contacto.samplia.com/formulario" target="_blank"
             rel="noopener noreferrer">
             Sí, quiero
@@ -2897,6 +2923,12 @@
           <li>La valoración de la colección Delizia es la media de una escala cerrada de 1 a 10.</li>
           <li>Las cifras de visibilidad (vistas únicas, participaciones y encuestas completadas) proceden del
             panel de la activación y son fijas: no dependen de los filtros de género y edad.</li>
+          <li>Benchmark Fragancias: valoración general de 7,8 sobre 10 y 48,3% de compradores potenciales. Las
+            píldoras de los KPI «Valoración de la colección Delizia» e «Intención de compra» muestran la
+            diferencia relativa respecto a ese benchmark: (dato del informe ÷ benchmark − 1) × 100. Por ejemplo,
+            una valoración de 7,87 frente a 7,8 es +0,9%. Es una diferencia en porcentaje del valor de referencia,
+            no en puntos porcentuales. Verde (▲) indica por encima del benchmark y rojo (▼) por debajo. Con filtros
+            de género o edad activos, la píldora compara la submuestra filtrada con el mismo benchmark.</li>
           <li>Los filtros de género y edad recalculan todos los indicadores del informe, incluidos los KPI de
             cabecera y las lecturas de negocio.</li>
         </ul>
@@ -3194,6 +3226,9 @@
     const KPI_DELICIA = ['Sí, y ya había probado alguna fragancia', 'Sí, la había visto, pero no probado'];
     const KPI_COMPRA = ['Colonias o mini colonias', 'Sí, cuidado facial', 'Sí, cuidado corporal'];
     const KPI_INTENCION = ['Compradores Potenciales'];
+    /* Benchmark Fragancias: valoración general (escala 1-10) y % de compradores potenciales. */
+    const BENCH_NOTA = 7.8;
+    const BENCH_INTEN = 48.3;
 
     const Q = {
       q1: {
@@ -3453,6 +3488,11 @@
             </div>
             <div class="vis-tot" id="vis_tot"></div>
             <div class="cv cv-300" id="vis_cv"><canvas id="cv-vis"></canvas></div>
+            <div class="vis-legend">
+              <p><b>CTR</b> = clics ÷ vistas × 100. De cada 100 veces que se vio la activación, cuántas terminaron en clic.</p>
+              <p><b>Participación</b> = participaciones ÷ clics × 100. De cada 100 personas que hicieron clic, cuántas participaron.</p>
+              <p><b>Encuesta / participación</b> = encuestas completadas ÷ participaciones × 100. De cada 100 participantes, cuántos llegaron al final de la encuesta.</p>
+            </div>
             <div class="base" id="vis_base"></div>
           </article>
         </div>
@@ -4129,7 +4169,7 @@
       const chips = document.getElementById('vis_chips');
       if (chips) {
         /* Dos tasas que resumen el embudo de un vistazo. */
-        const rp = tot.v ? pct(tot.p, tot.v) : 0;
+        const rp = tot.c ? pct(tot.p, tot.c) : 0;
         const re = tot.p ? pct(tot.e, tot.p) : 0;
         chips.innerHTML = `<span class="scorechip">Participación <b>${pf(rp, 1)}</b></span>`
           + `<span class="scorechip">Encuesta / participación <b>${pf(re, 0)}</b></span>`;
@@ -4145,19 +4185,25 @@
         type: 'line',
         data: {
           labels: VIS.map(r => visDay(r.d)),
-          datasets: VIS_SERIES.map(sr => ({
-            label: sr.t,
-            data: VIS.map(r => r[sr.k]),
-            borderColor: sr.c,
-            backgroundColor: sr.c,
-            borderWidth: 2.4,
-            stepped: 'middle',
-            pointRadius: 3.2,
-            pointHoverRadius: 5,
-            pointBackgroundColor: '#fff',
-            pointBorderWidth: 2,
-            fill: false
-          }))
+          datasets: VIS_SERIES.map(sr => {
+            /* Vistas: área suave sobre el eje izquierdo; el resto, líneas sobre el derecho. */
+            const isV = sr.k === 'v';
+            return {
+              label: sr.t,
+              data: VIS.map(r => r[sr.k]),
+              borderColor: sr.c,
+              backgroundColor: isV ? 'rgba(68,68,68,.13)' : sr.c,
+              borderWidth: isV ? 1.6 : 2.4,
+              stepped: 'middle',
+              pointRadius: isV ? 0 : 3.2,
+              pointHoverRadius: isV ? 3 : 5,
+              pointBackgroundColor: '#fff',
+              pointBorderWidth: 2,
+              fill: isV ? 'origin' : false,
+              yAxisID: isV ? 'y' : 'y1',
+              order: isV ? 2 : 1
+            };
+          })
         },
         options: {
           responsive: true, maintainAspectRatio: false,
@@ -4168,6 +4214,15 @@
               beginAtZero: true,
               grid: { color: C.n200, drawBorder: false },
               border: { display: false },
+              title: { display: true, text: 'Vistas únicas', font: { size: 11, weight: 700 }, color: C.n600 },
+              ticks: { font: { size: 11, weight: 600 }, color: C.n600, callback: v => nf(v) }
+            },
+            y1: {
+              position: 'right',
+              beginAtZero: true,
+              grid: { drawOnChartArea: false },
+              border: { display: false },
+              title: { display: true, text: 'Clics, participaciones y encuestas', font: { size: 11, weight: 700 }, color: C.n600 },
               ticks: { font: { size: 11, weight: 600 }, color: C.n600, callback: v => nf(v) }
             },
             x: {
@@ -4180,7 +4235,17 @@
               display: true, position: 'bottom',
               labels: {
                 usePointStyle: true, pointStyle: 'circle', boxWidth: 7, boxHeight: 7,
-                padding: 16, font: { size: 11.5, weight: 700 }, color: C.ink
+                padding: 16, font: { size: 11.5, weight: 700 }, color: C.ink,
+                /* Vistas únicas: cuadrado relleno (como el área del gráfico); el resto, círculo. */
+                generateLabels: chart => Chart.defaults.plugins.legend.labels.generateLabels(chart).map(it => {
+                  if (VIS_SERIES[it.datasetIndex] && VIS_SERIES[it.datasetIndex].k === 'v') {
+                    it.pointStyle = 'rect';
+                    it.fillStyle = 'rgba(68,68,68,.25)';
+                    it.strokeStyle = '#444444';
+                    it.lineWidth = 1.5;
+                  }
+                  return it;
+                })
               }
             },
             tooltip: tip({
@@ -4207,10 +4272,18 @@
       const nota = scaleStats(VIEW, Q.q9.col, Q.q9.scale[0], Q.q9.scale[1]);
       const inten = countAny(VIEW, Q.q11.col, KPI_INTENCION);
 
-      const kpi = (v, u, l, note) => `<div class="kpi">
+      /* Píldora comparativa: diferencia relativa (%) frente al benchmark de Fragancias. */
+      const bench = (val, ref, refTxt) => {
+        const d = (val / ref - 1) * 100;
+        const up = d >= 0;
+        return `<div class="kpi-bm"><span class="minipill ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} <b>${up ? '+' : '−'}${df(Math.abs(d), 1)}%</b> vs benchmark ${refTxt}</span></div>`;
+      };
+
+      const kpi = (v, u, l, note, extra) => `<div class="kpi">
         <div class="kpi-v">${v}${u ? `<span class="kpi-u">${u}</span>` : ''}</div>
         <div class="kpi-l">${l}</div>`
         + (note ? `<div class="kpi-n">${note}</div>` : '')
+        + (extra || '')
         + `</div>`;
 
       $('#kpis').innerHTML =
@@ -4219,9 +4292,18 @@
         kpi(conoce.base ? pf(conoce.pct, 0) : '—', '', 'Conocían Flor de Mayo') +
         kpi(delicia.base ? pf(delicia.pct, 0) : '—', '', 'Conocían la colección Delizia') +
         kpi(compra.base ? pf(compra.pct, 0) : '—', '', 'Han comprado algún producto de Flor de Mayo') +
-        kpi(nota.n ? df(nota.mean, 2) : '—', nota.n ? '/10' : '', 'Valoración de la colección Delizia') +
+        kpi(nota.n ? df(nota.mean, 2) : '—', nota.n ? '/10' : '', 'Valoración de la colección Delizia', '',
+          nota.n ? bench(nota.mean, BENCH_NOTA, df(BENCH_NOTA, 1)) : '') +
         kpi(inten.base ? pf(inten.pct, 0) : '—', '', 'Intención de compra',
-          inten.base ? nf(inten.hit) + ' compradores potenciales' : '');
+          '',
+          inten.base ? bench(inten.pct, BENCH_INTEN, pf(BENCH_INTEN, 1)) : '');
+
+      /* Cierre: total de compradores potenciales de toda la muestra, sin filtros. */
+      const ctaN = $('#cta-n');
+      if (ctaN) {
+        const potTotal = countAny(ROWS, Q.q11.col, KPI_INTENCION);
+        ctaN.textContent = potTotal.base ? nf(potTotal.hit) : '—';
+      }
 
       $('#pdfhero-n').textContent = nf(VIEW.length) + ' encuestados'
         + (isFiltered() ? ' (filtrado)' : '');
