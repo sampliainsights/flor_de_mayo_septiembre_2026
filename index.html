@@ -3789,7 +3789,7 @@
 
     /* ── Tres minitarjetas ──────────────────────────────────────── */
     /* Por respuesta, no por posición: «Compradores Potenciales» en azul, a petición. */
-    const trioColor = label => /^compradores/i.test(label) ? '#375395' : /^no\b/i.test(label) ? '#999999' : '#DC97AD';
+    const trioColor = label => /^compradores/i.test(label) ? '#375395' : /^no\b/i.test(label) ? C.red : C.n500;
     const trioRank = label => /^no\b/i.test(label) ? 0 : /^compradores/i.test(label) ? 2 : 1;
     function renderTrio(q) {
       const host = document.getElementById(q.id + '_trio');
@@ -3940,10 +3940,14 @@
           datasets: [{
             data: rows.map(r => r.value),
             /* `gradient`: cada barra va de un color a otro a lo largo de su longitud. */
+            /* Se calcula con la escala y no con el elemento: durante la
+               animación de entrada la barra aún mide cero y salía plana. */
             backgroundColor: opt.gradient ? (c => {
-              const b = c.element, a = c.chart.chartArea;
-              if (!b || !a || b.x === b.base) return opt.gradient[0];
-              const g = c.chart.ctx.createLinearGradient(b.base, 0, b.x, 0);
+              const x = c.chart.scales && c.chart.scales.x;
+              if (!x || c.raw == null) return opt.gradient[0];
+              const x0 = x.getPixelForValue(0), x1 = x.getPixelForValue(c.raw);
+              if (!isFinite(x0) || !isFinite(x1) || x1 === x0) return opt.gradient[0];
+              const g = c.chart.ctx.createLinearGradient(x0, 0, x1, 0);
               g.addColorStop(0, opt.gradient[0]); g.addColorStop(1, opt.gradient[1]);
               return g;
             }) : colors,
@@ -4487,8 +4491,8 @@
       /* 7 · ¿has comprado alguna vez? */
       renderTree(Q.q5, {
         chips: () => {
-          const c = countAny(VIEW, Q.q5.col, KPI_COMPRA);
-          return c.base ? `<span class="scorechip">Han comprado <b>${pf(c.pct)}</b></span>` : '';
+          const c = countAny(VIEW, Q.q5.col, ['Colonias o mini colonias']);
+          return c.base ? `<span class="scorechip">Han comprado colonias o mini colonias <b>${pf(c.pct)}</b></span>` : '';
         }
       });
 
