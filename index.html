@@ -3224,7 +3224,6 @@
     const KPI_CONOCE = ['Sí, y he comprado sus productos', 'Sí, pero nunca he comprado',
       'Me sonaba el nombre'];
     const KPI_DELICIA = ['Sí, y ya había probado alguna fragancia', 'Sí, la había visto, pero no probado'];
-    const KPI_COMPRA = ['Colonias o mini colonias', 'Sí, cuidado facial', 'Sí, cuidado corporal'];
     const KPI_INTENCION = ['Compradores Potenciales'];
     /* Benchmark Fragancias: valoración general (escala 1-10) y % de compradores potenciales. */
     const BENCH_NOTA = 7.8;
@@ -4272,7 +4271,7 @@
     function renderKPIs() {
       const conoce = countAny(VIEW, Q.q1.col, KPI_CONOCE);
       const delicia = countAny(VIEW, Q.q4.col, KPI_DELICIA);
-      const compra = countAny(VIEW, Q.q5.col, KPI_COMPRA);
+      const compra = countAny(VIEW, Q.q6.col, ['Sí']);
       const nota = scaleStats(VIEW, Q.q9.col, Q.q9.scale[0], Q.q9.scale[1]);
       const inten = countAny(VIEW, Q.q11.col, KPI_INTENCION);
 
@@ -4295,7 +4294,7 @@
           isFiltered() ? 'de ' + nf(ROWS.length) + ' en total' : 'muestra completa') +
         kpi(conoce.base ? pf(conoce.pct, 0) : '—', '', 'Conocían Flor de Mayo') +
         kpi(delicia.base ? pf(delicia.pct, 0) : '—', '', 'Conocían la colección Delizia') +
-        kpi(compra.base ? pf(compra.pct, 0) : '—', '', 'Han comprado algún producto de Flor de Mayo') +
+        kpi(compra.base ? pf(compra.pct, 0) : '—', '', 'Han comprado en la pop-up') +
         kpi(nota.n ? df(nota.mean, 2) : '—', nota.n ? '/10' : '', 'Valoración de la colección Delizia', '',
           nota.n ? bench(nota.mean, BENCH_NOTA, df(BENCH_NOTA, 1)) : '') +
         kpi(inten.base ? pf(inten.pct, 0) : '—', '', 'Intención de compra',
