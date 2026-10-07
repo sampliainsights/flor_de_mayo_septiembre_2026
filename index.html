@@ -3228,6 +3228,8 @@
     /* Benchmark Fragancias: valoración general (escala 1-10) y % de compradores potenciales. */
     const BENCH_NOTA = 7.8;
     const BENCH_INTEN = 48.3;
+    /* Benchmark de conversión en pop-up: % de encuestados que han comprado. */
+    const BENCH_COMPRA = 33;
 
     const Q = {
       q1: {
@@ -4294,7 +4296,8 @@
           isFiltered() ? 'de ' + nf(ROWS.length) + ' en total' : 'muestra completa') +
         kpi(conoce.base ? pf(conoce.pct, 0) : '—', '', 'Conocían Flor de Mayo') +
         kpi(delicia.base ? pf(delicia.pct, 0) : '—', '', 'Conocían la colección Delizia') +
-        kpi(compra.base ? pf(compra.pct, 0) : '—', '', 'Han comprado en la pop-up') +
+        kpi(compra.base ? pf(compra.pct, 0) : '—', '', 'Han comprado en la pop-up', '',
+          compra.base ? bench(compra.pct, BENCH_COMPRA, pf(BENCH_COMPRA, 0)) : '') +
         kpi(nota.n ? df(nota.mean, 2) : '—', nota.n ? '/10' : '', 'Valoración de la colección Delizia', '',
           nota.n ? bench(nota.mean, BENCH_NOTA, df(BENCH_NOTA, 1)) : '') +
         kpi(inten.base ? pf(inten.pct, 0) : '—', '', 'Intención de compra',
